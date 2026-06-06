@@ -1,3 +1,33 @@
+# Frontend (Docker + Elastic Beanstalk)
+
+Quick notes for CI and deployment.
+
+**CI / Deploy**
+- Workflow: `.github/workflows/deploy.yaml` — runs tests, validates the Dockerfile by building and smoke-testing the image, packages a `deploy.zip` source bundle and deploys to Elastic Beanstalk.
+- Required repository secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (add in Settings → Secrets and variables → Actions).
+
+**Dockerfile**
+- Uses pinned base images: `node:18-alpine` (builder) and `nginx:1.25-alpine` (runtime).
+- Uses `npm ci` for reproducible installs and a multi-stage build to produce static files served by nginx.
+
+**Local validation**
+Build and run the container locally to verify it serves on port 80:
+
+```bash
+docker build -f Dockerfile -t frontend-local .
+docker run -d --name frontend-local -p 8080:80 frontend-local
+curl -I http://localhost:8080/
+docker rm -f frontend-local
+```
+
+**Deploy packaging**
+- For this Elastic Beanstalk Docker environment the workflow packages the repository (including `Dockerfile`) as `deploy.zip`. EB will build the image from the Dockerfile on the instance.
+- If you instead deploy a static site (no Docker), package the `build/` folder and deploy that artifact.
+
+**Notes**
+- Keep secrets out of the repo. Use GitHub Actions secrets or GitHub OIDC for stronger security.
+- The CI currently performs a smoke test (`curl`) against the built image to catch runtime failures before upload.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

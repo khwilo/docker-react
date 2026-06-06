@@ -28,6 +28,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate Dockerfile (build image)
+        run: |
+          echo "Building Docker image to validate Dockerfile"
+          docker build -f Dockerfile -t frontend-ci-validate .
+
+      - name: Run built container and smoke test
+        run: |
+          echo "Starting container to run smoke test"
+          docker run -d --name frontend-ci-validate-run -p 8080:80 frontend-ci-validate
+          sleep 5
+          if ! curl -sSf http://localhost:8080/ > /dev/null; then
+            echo "Smoke test failed — printing container logs" >&2
+            docker logs frontend-ci-validate-run || true
+            docker rm -f frontend-ci-validate-run || true
+            exit 1
+          fi
+          docker rm -f frontend-ci-validate-run
+
       - name: Zip source bundle
         run: zip -r deploy.zip . -x '.git/*' 'node_modules/*' 'build.zip' 'deploy.zip'
 
