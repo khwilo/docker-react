@@ -27,39 +27,12 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies and build the app
-        run: |
-          npm ci
-          npm run build
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Debug AWS credentials
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-        run: |
-          echo "AWS_ACCESS_KEY_ID set: ${AWS_ACCESS_KEY_ID:+true}"
-          echo "AWS_SECRET_ACCESS_KEY set: ${AWS_SECRET_ACCESS_KEY:+true}"
-          echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-<missing>}"
-          echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
-          echo "GITHUB_REF: $GITHUB_REF"
-
-      - name: Zip build folder
-        run: zip -r build.zip build
+      - name: Zip source bundle
+        run: zip -r deploy.zip . -x '.git/*' 'node_modules/*' 'build.zip' 'deploy.zip'
 
       - name: Deploy to AWS Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v20
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -68,4 +41,4 @@ jobs:
           existing_bucket_name: elasticbeanstalk-us-east-1-851725511365
           region: us-east-1
           version_label: ${{ github.sha }}
-          deployment_package: build.zip
+          deployment_package: deploy.zip
