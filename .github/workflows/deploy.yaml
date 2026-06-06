@@ -40,16 +40,16 @@ jobs:
           aws-region: us-east-1
 
       - name: Debug AWS credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
         run: |
           echo "AWS_ACCESS_KEY_ID set: ${AWS_ACCESS_KEY_ID:+true}"
           echo "AWS_SECRET_ACCESS_KEY set: ${AWS_SECRET_ACCESS_KEY:+true}"
           echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-<missing>}"
           echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
           echo "GITHUB_REF: $GITHUB_REF"
-          env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_DEFAULT_REGION: us-east-1
 
       - name: Zip build folder
         run: zip -r build.zip build
