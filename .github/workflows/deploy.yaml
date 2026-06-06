@@ -39,11 +39,33 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Verify AWS credential environment
+        run: |
+          if [ -n "${AWS_ACCESS_KEY_ID:-}" ]; then
+            echo "AWS_ACCESS_KEY_ID is set"
+          else
+            echo "AWS_ACCESS_KEY_ID is missing"
+          fi
+          if [ -n "${AWS_SECRET_ACCESS_KEY:-}" ]; then
+            echo "AWS_SECRET_ACCESS_KEY is set"
+          else
+            echo "AWS_SECRET_ACCESS_KEY is missing"
+          fi
+          if [ -n "${AWS_DEFAULT_REGION:-}" ]; then
+            echo "AWS_DEFAULT_REGION is set to $AWS_DEFAULT_REGION"
+          else
+            echo "AWS_DEFAULT_REGION is missing"
+          fi
+
       - name: Zip build folder
         run: zip -r build.zip build
 
       - name: Deploy to AWS Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v20
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
         with:
           application_name: frontend
           environment_name: Frontend-env
